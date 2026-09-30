@@ -1,0 +1,33 @@
+name: Claude Code
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  claude:
+    # Run when someone writes @claude, or when an issue gets the "ready" label.
+    if: >
+      contains(github.event.comment.body, '@claude') ||
+      (github.event_name == 'issues' && github.event.label.name == 'ready')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # For the "ready" label case there is no comment, so give it the job explicitly.
+          prompt: ${{ github.event_name == 'issues' && format('/work-issue {0}', github.event.issue.number) || '' }}
