@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Build Night — RSVP</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <p class="eyebrow">Toronto · Workshop</p>
+    <h1>AI Build Night</h1>
+    <p class="lede">Build a product from zero with Claude Code.</p>
+  </header>
+  <main>
+    <section aria-labelledby="rsvp-title" class="card">
+      <h2 id="rsvp-title">Save your seat</h2>
+      <form id="rsvp-form" novalidate>
+        <label for="name">Name</label>
+        <input id="name" name="name" autocomplete="name" required />
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+        <button type="submit">RSVP</button>
+        <p id="form-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
