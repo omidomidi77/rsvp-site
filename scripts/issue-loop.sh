@@ -19,13 +19,14 @@ for n in $issues; do
   echo "=== Working issue #$n ==="
   gh issue edit "$n" --remove-label ready --add-label in-progress
 
+  out="claude-issue-$n.json"
   if claude -p "/work-issue $n" \
        --permission-mode acceptEdits \
        --allowedTools "Bash(npm test) Bash(git *) Bash(gh *) mcp__github" \
        --max-budget-usd "$BUDGET_USD" \
-       --output-format json > "claude-issue-$n.json" \
-     && node -e 'process.exit(JSON.parse(require("fs").readFileSync(process.argv[1])).is_error ? 1 : 0)' "claude-issue-$n.json"; then
-    echo "✓ #$n done: $(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1])).result ?? "")' "claude-issue-$n.json" | tail -3)"
+       --output-format json > "$out" \
+     && summary=$(node scripts/claude-result.mjs "$out"); then
+    echo "✓ #$n done: $summary"
   else
     echo "✗ #$n failed — sending back to humans"
     gh issue edit "$n" --remove-label in-progress --add-label needs-human
