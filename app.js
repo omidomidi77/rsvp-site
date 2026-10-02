@@ -42,13 +42,21 @@ async function submitRsvp(rsvp) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(rsvp),
     });
+    if (response.status === 409) {
+      const { error } = await response.json();
+      status.textContent = error;
+      return;
+    }
     if (!response.ok) throw new Error(`server responded ${response.status}`);
+    const { sent } = await response.json();
     const seats = rsvp.guests === 1 ? "1 seat" : `${rsvp.guests} seats`;
-    status.textContent = `Thanks, ${rsvp.name}. We have reserved ${seats} and emailed a confirmation to ${rsvp.email}.`;
+    status.textContent = sent
+      ? `Thanks, ${rsvp.name}. We have reserved ${seats} and emailed a confirmation to ${rsvp.email}.`
+      : `Thanks, ${rsvp.name}. We have reserved ${seats}, but the confirmation email could not be sent.`;
     form.reset();
     showErrors({});
   } catch {
-    status.textContent = "We could not send your confirmation. Please try again in a moment.";
+    status.textContent = "We could not save your RSVP. Please try again in a moment.";
   } finally {
     button.disabled = false;
   }

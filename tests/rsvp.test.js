@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { validateRsvp } from "../rsvp.js";
+import { validateRsvp, isDuplicateEmail } from "../rsvp.js";
 
 test("accepts a complete, well-formed RSVP", () => {
   // Arrange
@@ -56,4 +56,24 @@ test("trims and lower-cases the email in the returned value", () => {
   assert.equal(result.ok, true);
   assert.equal(result.value.name, "Ada");
   assert.equal(result.value.email, "ada@example.com");
+});
+
+test("flags an email that already RSVP'd, ignoring case and whitespace", () => {
+  // Arrange
+  const existing = ["ada@example.com", "grace@example.com"];
+  // Act
+  const sameEmail = isDuplicateEmail(existing, "  ADA@Example.com ");
+  const newEmail = isDuplicateEmail(existing, "linus@example.com");
+  // Assert
+  assert.equal(sameEmail, true);
+  assert.equal(newEmail, false);
+});
+
+test("treats an empty list as having no duplicates", () => {
+  // Arrange
+  const existing = [];
+  // Act
+  const result = isDuplicateEmail(existing, "ada@example.com");
+  // Assert
+  assert.equal(result, false);
 });

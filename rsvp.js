@@ -21,3 +21,12 @@ export function validateRsvp({ name = "", email = "", guests = "" }) {
     ? { ok, errors, value: { name: cleanName, email: cleanEmail, guests: guestCount } }
     : { ok, errors };
 }
+
+export function isDuplicateEmail(existingEmails, email) {
+  const wanted = normalizeEmail(email);
+  return existingEmails.some((existing) => normalizeEmail(existing) === wanted);
+}
+
+function normalizeEmail(email) {
+  return String(email).trim().toLowerCase();
+}

@@ -3,15 +3,16 @@
 // Node built-ins only. Run with `npm start`.
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateRsvp } from "./rsvp.js";
+import { validateRsvp, isDuplicateEmail } from "./rsvp.js";
 import { buildConfirmationEmail } from "./email.js";
 
 const ROOT = fileURLToPath(new URL(".", import.meta.url));
 const PORT = Number(process.env.PORT ?? 5173);
 const RESEND_URL = "https://api.resend.com/emails";
+const RSVP_STORE = join(ROOT, "rsvps.json");
 const MAX_BODY_BYTES = 10_000;
 const CONTENT_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -45,20 +46,39 @@ async function handleRsvp(request, response) {
   const result = validateRsvp(body);
   if (!result.ok) return sendJson(response, 400, { errors: result.errors });
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return sendJson(response, 500, { error: "Email is not configured on the server." });
+  const rsvps = readRsvps();
+  if (isDuplicateEmail(rsvps.map((rsvp) => rsvp.email), result.value.email)) {
+    return sendJson(response, 409, { error: "This email already has a reservation. One RSVP per person, please." });
+  }
+  writeRsvps([...rsvps, { ...result.value, reservedAt: new Date().toISOString() }]);
 
-  const message = buildConfirmationEmail(result.value, process.env.RSVP_FROM ?? "RSVP <onboarding@resend.dev>");
+  const sent = await sendConfirmation(result.value);
+  sendJson(response, 202, { sent });
+}
+
+async function sendConfirmation(rsvp) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("confirmation not sent: RESEND_API_KEY is not set");
+    return false;
+  }
+  const message = buildConfirmationEmail(rsvp, process.env.RSVP_FROM ?? "RSVP <onboarding@resend.dev>");
   const resend = await fetch(RESEND_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify(message),
   });
-  if (!resend.ok) {
-    console.error(`resend rejected confirmation: status=${resend.status}`);
-    return sendJson(response, 502, { error: "The confirmation email could not be sent." });
-  }
-  sendJson(response, 202, { sent: true });
+  if (!resend.ok) console.error(`resend rejected confirmation: status=${resend.status}`);
+  return resend.ok;
+}
+
+function readRsvps() {
+  if (!existsSync(RSVP_STORE)) return [];
+  return JSON.parse(readFileSync(RSVP_STORE, "utf8"));
+}
+
+function writeRsvps(rsvps) {
+  writeFileSync(RSVP_STORE, JSON.stringify(rsvps, null, 2));
 }
 
 async function serveStatic(url, response) {
