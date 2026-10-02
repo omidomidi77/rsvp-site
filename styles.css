@@ -155,6 +155,32 @@ main {
   margin: 0;
 }
 
+.faq {
+  display: grid;
+  gap: var(--space);
+}
+
+.faq details {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.5) calc(var(--space) * 2);
+}
+
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.faq summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.faq p {
+  margin: var(--space) 0 0;
+  color: var(--color-muted);
+}
+
 .field {
   display: grid;
   gap: calc(var(--space) / 2);
