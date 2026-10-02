@@ -1,11 +1,11 @@
 ---
 name: git-commit
-description: Git commit rules for the RSVP site. Use after every completed code change, before reporting a task as done, to commit the work.
+description: Git commit and push rules for the RSVP site. Use after every completed code change, before reporting a task as done, to commit and push the work.
 ---
 
-# Commit after every change
+# Commit and push after every change
 
-Every task that changes files ends with a commit. Do not report a task as done with uncommitted work.
+Every task that changes files ends with a commit that is pushed. Do not report a task as done with uncommitted or unpushed work.
 
 ## Steps
 1. Run `npm test`. If it fails, fix it first; never commit red.
@@ -17,7 +17,10 @@ Every task that changes files ends with a commit. Do not report a task as done w
    - Subject: imperative, capitalized, 50 characters or fewer, no trailing period.
    - Body (optional): what changed and why, wrapped at 72 characters.
 5. Work for a GitHub issue goes on a branch named `issue-<number>-<short-slug>`; never commit to that branch's work on `main`.
-6. Finish by reporting the short hash and subject, for example `a1b2c3d feat: Add location section`.
+6. Push the current branch: `git push -u origin HEAD`.
+   If the repo has no `origin` remote, say so and stop; do not create one without being asked.
+7. Finish by reporting the short hash, subject and the branch that was pushed,
+   for example `a1b2c3d feat: Add location section (pushed main)`.
 
 ## Don'ts
 - No `--amend`, no force-push, no history rewriting.
