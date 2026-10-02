@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Toronto AI Meetup</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <img class="logo" src="rbc-logo.svg" alt="RBC" width="160" height="56" />
+        <h1>Toronto AI Meetup</h1>
+        <p>An evening of talks and hands-on demos on building real products with AI. Free, in person, and open to everyone.</p>
+      </header>
+
+      <section class="card" aria-labelledby="details-heading">
+        <h2 id="details-heading">Event details</h2>
+        <dl class="details">
+          <div>
+            <dt>When</dt>
+            <dd>Thursday, October 15, 6:30 pm to 9:00 pm</dd>
+          </div>
+          <div>
+            <dt>Where</dt>
+            <dd>MaRS Discovery District, 101 College St, Toronto</dd>
+          </div>
+          <div>
+            <dt>Cost</dt>
+            <dd>Free, food and drinks provided</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="card" aria-labelledby="location-heading">
+        <h2 id="location-heading">Location <span class="like" aria-hidden="true">👍</span></h2>
+        <p class="meme"><span aria-hidden="true">🗺️</span> "It's a five-minute walk from the subway." Narrator: it was not five minutes. 🚶‍♂️💨</p>
+        <address class="location">
+          <p class="venue">MaRS Discovery District</p>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=MaRS+Discovery+District+101+College+St+Toronto">101 College St, Toronto, ON M5G 1L7</a></p>
+        </address>
+        <dl class="details">
+          <div>
+            <dt>Transit</dt>
+            <dd>Queen's Park station (Line 1), two minutes on foot</dd>
+          </div>
+          <div>
+            <dt>Parking</dt>
+            <dd>Paid parking under the building, enter from College St</dd>
+          </div>
+          <div>
+            <dt>Accessibility</dt>
+            <dd>Step-free entrance and elevators to the event floor</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="card" aria-labelledby="speakers-heading">
+        <h2 id="speakers-heading">Speakers <span class="like" aria-hidden="true">👍</span></h2>
+        <p class="meme"><span aria-hidden="true">🐱‍💻</span> Me: "quick five-minute demo." The demo: 🔥🔥🔥</p>
+        <ul class="speakers">
+          <li class="speaker">
+            <h3>Arman</h3>
+            <p class="role">AI in industry</p>
+            <p>Where AI is delivering real value today, and what separates a demo from a product in production.</p>
+          </li>
+          <li class="speaker">
+            <h3>Omid</h3>
+            <p class="role">Hands-on Claude Code</p>
+            <p>A live build from an empty folder: CLAUDE.md, skills, subagents, hooks and MCP, one step at a time.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="card" aria-labelledby="rsvp-heading">
+        <h2 id="rsvp-heading">RSVP</h2>
+        <form id="rsvp-form" novalidate>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required aria-describedby="name-error" />
+            <span id="name-error" class="error" aria-live="polite"></span>
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required aria-describedby="email-error" />
+            <span id="email-error" class="error" aria-live="polite"></span>
+          </div>
+          <div class="field">
+            <label for="guests">Seats (including you)</label>
+            <input id="guests" name="guests" type="number" min="1" max="4" value="1" required aria-describedby="guests-error" />
+            <span id="guests-error" class="error" aria-live="polite"></span>
+          </div>
+          <button type="submit">Reserve my seat</button>
+          <p id="rsvp-status" class="status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
