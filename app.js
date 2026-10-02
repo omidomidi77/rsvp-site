@@ -29,9 +29,27 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  const { name, guests } = result.value;
-  const seats = guests === 1 ? "1 seat" : `${guests} seats`;
-  status.textContent = `Thanks, ${name}. We have reserved ${seats} for you.`;
-  form.reset();
-  showErrors({});
+  submitRsvp(result.value);
 });
+
+async function submitRsvp(rsvp) {
+  const button = form.querySelector("button[type='submit']");
+  button.disabled = true;
+  status.textContent = "Sending your confirmation...";
+  try {
+    const response = await fetch("/api/rsvp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rsvp),
+    });
+    if (!response.ok) throw new Error(`server responded ${response.status}`);
+    const seats = rsvp.guests === 1 ? "1 seat" : `${rsvp.guests} seats`;
+    status.textContent = `Thanks, ${rsvp.name}. We have reserved ${seats} and emailed a confirmation to ${rsvp.email}.`;
+    form.reset();
+    showErrors({});
+  } catch {
+    status.textContent = "We could not send your confirmation. Please try again in a moment.";
+  } finally {
+    button.disabled = false;
+  }
+}
