@@ -36,17 +36,11 @@ main {
   padding: calc(var(--space) * 4) 0 calc(var(--space) * 2);
 }
 
-.logos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--space) * 2);
-  margin-bottom: calc(var(--space) * 2);
-}
-
 .logo {
   display: block;
   height: 56px;
   width: auto;
+  margin-bottom: calc(var(--space) * 2);
 }
 
 .hero h1 {
