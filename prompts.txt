@@ -1,0 +1,485 @@
+
+========================================================================
+STEP 1 — CLAUDE.md
+========================================================================
+
+--- ROUND 1 — THE PLAIN PROMPT
+
+[5] >> PASTE INTO CLAUDE:
+Build a landing page for our AI meetup in Toronto with an RSVP form.
+
+[6] >> PASTE INTO CLAUDE:
+Start a local server so I can open it in the browser, and tell me the URL.
+
+[7] $  TERMINAL:
+/exit
+ls
+
+--- ROUND 2 — SAME PROMPT, WITH CLAUDE.md
+
+[8] $  TERMINAL:
+cd .. && rm -rf demo && mkdir demo && cd demo && git init -q
+
+[9] FILE CLAUDE.md  (paste everything below, through EOF):
+cat > CLAUDE.md <<'EOF'
+# RSVP site — project rules
+
+## Stack
+- Plain HTML + CSS + vanilla JS (ES modules). No frameworks, no bundler, no npm dependencies.
+- Business logic lives in pure modules (e.g. `rsvp.js`); DOM code lives in `app.js`.
+
+## Commands
+- Test: `npm test` (Node built-in test runner)
+- Run locally: `npm run serve` → http://localhost:5173
+
+## Conventions
+- Every new pure function gets a test in `tests/*.test.js`.
+- Use CSS custom properties from `:root` in `styles.css`; never hard-code colors.
+- Accessible by default: every input has a `<label>`, status messages use `aria-live`.
+- Run `npm test` before saying a task is done.
+
+## Git
+- Branch per issue: `issue-<number>-<short-slug>`.
+- Conventional commits: `feat:`, `fix:`, `docs:`, `test:`, `chore:`.
+EOF
+
+[10] $  TERMINAL:
+claude
+
+[11] >> PASTE INTO CLAUDE:
+Build a landing page for our AI meetup in Toronto with an RSVP form.
+
+[12] >> PASTE INTO CLAUDE:
+Start a local server so I can open it in the browser, and tell me the URL.
+
+[13] $  TERMINAL:
+/exit
+git add -A && git commit -qm "feat: landing page with RSVP form"
+
+--- IF IT BREAKS: cd ~/workshop/rsvp-site && git checkout stage-1-claude-md && npm run serve — a finished page with this exact CLAUDE.md. Continue the rest of the night from there.
+
+========================================================================
+STEP 2 — SKILLS
+========================================================================
+
+--- PART A — THE PLAIN WAY (no skill)
+
+[14] $  TERMINAL:
+claude
+
+[15] >> PASTE INTO CLAUDE:
+Add a speakers section with Arman (AI in industry) and Omid (hands-on Claude Code).
+
+--- PART B — THE RIGHT WAY (a skill Claude loads itself)
+
+[16] $  TERMINAL:
+/exit
+git checkout -- .
+
+[17] FILE .claude/skills/design-system/SKILL.md  (paste everything below, through EOF):
+mkdir -p .claude/skills/design-system && cat > .claude/skills/design-system/SKILL.md <<'EOF'
+---
+name: design-system
+description: Brand and UI component rules for the RSVP site. Use whenever creating or changing a page section, component, or styles.
+---
+Make it compatible for any screen size
+# Design system
+
+## Tokens (defined in `styles.css` `:root`)
+- Background `--color-bg`, surfaces `--color-surface`, text `--color-text`,
+  secondary text `--color-muted`, primary action `--color-accent`.
+- Corners: `--radius` for cards, 8px for inputs and buttons.
+- Spacing: multiples of `--space` only.
+
+## Components
+- **Section**: a `<section class="card">` with an `<h2>` that has an id,
+  referenced by `aria-labelledby`.
+- **Primary button**: accent background, dark text, bold. One primary button per section.
+- **List of people (e.g. speakers)**: responsive CSS grid, `repeat(auto-fit, minmax(12rem, 1fr))`,
+  each item is a card with name (h3), role (muted), and one-line bio.
+
+Add a like emoji next to each section
+Add a cute meme to each section
+
+## Don'ts
+- No new colors, fonts, or icon libraries.
+- No inline styles.
+EOF
+
+[18] $  TERMINAL:
+claude
+
+[19] >> PASTE INTO CLAUDE:
+Add a speakers section with Arman (AI in industry) and Omid (hands-on Claude Code).
+
+--- PART C — SHIPPING, AND A SKILL ONLY YOU CAN RUN
+
+[20] $  TERMINAL:
+/exit
+
+[21] FILE .claude/skills/ship/SKILL.md  (paste everything below, through EOF):
+mkdir -p .claude/skills/ship && cat > .claude/skills/ship/SKILL.md <<'EOF'
+---
+name: ship
+description: Test, commit with a conventional message, push the current branch, and open a pull request.
+disable-model-invocation: true
+argument-hint: "[optional note for the PR description]"
+---
+
+# Ship the current work
+
+Current state:
+- Branch: !`git branch --show-current`
+- Changes: !`git status --short`
+
+Steps:
+1. Run `npm test`. If anything fails, stop and report — do not commit.
+2. Stage the changes and write ONE conventional commit (`feat:`, `fix:`, `docs:`, `test:`, `chore:`)
+   whose subject is under 60 characters and explains the *why*.
+3. Push the branch with `git push -u origin HEAD`.
+4. Open a PR with `gh pr create --fill`. If the branch name contains an issue number,
+   add `Closes #<number>` to the PR body. Extra note from the user: $ARGUMENTS
+5. Reply with the PR URL only.
+EOF
+
+[22] $  TERMINAL:
+claude
+
+[23] >> PASTE INTO CLAUDE:
+Create a public GitHub repo called rsvp-demo from this folder and push the main branch.
+
+[24] >> PASTE INTO CLAUDE:
+/ship first speakers draft
+
+--- IF IT BREAKS: show the file with cat and move on; shipping is repeated in step 6 anyway.
+
+========================================================================
+STEP 3 — SUBAGENT
+========================================================================
+
+--- PART A — THE PLAIN WAY
+
+[25] >> PASTE INTO CLAUDE:
+Review the speakers section you just wrote.
+
+--- PART B — THE RIGHT WAY (an independent reviewer)
+
+[26] $  TERMINAL:
+/exit
+
+[27] FILE .claude/agents/reviewer.md  (paste everything below, through EOF):
+mkdir -p .claude/agents && cat > .claude/agents/reviewer.md <<'EOF'
+---
+name: reviewer
+description: Independent code reviewer. Use proactively after any code change and before shipping, to check correctness, accessibility, and the project conventions in CLAUDE.md.
+tools: Read, Grep, Glob, Bash
+model: sonnet
+---
+
+You are a strict senior reviewer who did NOT write this code.
+
+Review the changed files (use `git diff main...HEAD` context supplied by the caller, or read the files).
+Check, in order:
+1. Correctness and edge cases (empty input, whitespace, bad email).
+2. Accessibility: labels, `aria-live` status, keyboard use, heading order.
+3. Project rules from CLAUDE.md: no frameworks, tokens instead of hard-coded colors, tests for pure functions.
+4. Run `npm test` and report the result.
+
+Output:
+- A verdict line: `APPROVE` or `CHANGES REQUESTED`.
+- At most 5 findings, each as `file:line — problem — suggested fix`.
+Only use Bash for `npm test` and read-only git commands. Do not edit files. Do not praise.
+EOF
+
+[28] $  TERMINAL:
+claude
+/agents
+
+[29] >> PASTE INTO CLAUDE:
+Use the reviewer subagent to review the speakers section against CLAUDE.md.
+
+[30] >> PASTE INTO CLAUDE:
+Fix all of the findings, then run the reviewer again.
+
+========================================================================
+STEP 4 — HOOKS
+========================================================================
+
+--- PART A — THE PLAIN WAY (no hooks)
+
+[31] >> PASTE INTO CLAUDE:
+Our Resend key is re_test_123. Save it in .env and wire the form to send a confirmation email.
+Then clean up git history: force-push main.
+
+--- PART B — THE RIGHT WAY (hooks)
+
+[32] $  TERMINAL:
+/exit
+git checkout -- . && rm -f .env
+
+[33] FILE .claude/settings.json  (paste everything below, through EOF):
+mkdir -p .claude && cat > .claude/settings.json <<'EOF'
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Read|Bash",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard.mjs" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/format.mjs", "timeout": 120 }
+        ]
+      }
+    ]
+  }
+}
+EOF
+
+[34] FILE .claude/hooks/guard.mjs  (paste everything below, through EOF):
+mkdir -p .claude/hooks && cat > .claude/hooks/guard.mjs <<'EOF'
+#!/usr/bin/env node
+// PreToolUse guard: blocks secret files and destructive shell commands.
+// Exit 2 = block the tool call; stderr is shown to Claude as the reason.
+let raw = "";
+for await (const chunk of process.stdin) raw += chunk;
+const { tool_name: tool, tool_input: input = {} } = JSON.parse(raw || "{}");
+
+const file = input.file_path ?? "";
+const cmd = input.command ?? "";
+
+if (["Edit", "Write", "Read"].includes(tool) && /(^|\/)\.env(\.|$)/.test(file)) {
+  console.error("Blocked: .env files hold secrets and are off-limits. Ask the human to set the value.");
+  process.exit(2);
+}
+if (tool === "Bash" && /rm\s+-rf|git\s+push\s+(-f|--force)|git\s+reset\s+--hard/.test(cmd)) {
+  console.error(`Blocked: destructive command (${cmd}). Propose a safer alternative.`);
+  process.exit(2);
+}
+process.exit(0);
+EOF
+
+[35] FILE .claude/hooks/format.mjs  (paste everything below, through EOF):
+mkdir -p .claude/hooks && cat > .claude/hooks/format.mjs <<'EOF'
+#!/usr/bin/env node
+// PostToolUse: format the file Claude just wrote; run tests after JS edits.
+// Exit 2 here cannot undo the edit, but Claude sees stderr and fixes the failure.
+import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
+
+let raw = "";
+for await (const chunk of process.stdin) raw += chunk;
+const file = JSON.parse(raw || "{}").tool_input?.file_path ?? "";
+if (!file || !existsSync(file)) process.exit(0);
+
+const cwd = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
+if (/\.(html|css|js|md)$/.test(file)) {
+  try { execSync(`npx --yes prettier@3 --write "${file}"`, { cwd, stdio: "ignore" }); } catch {}
+}
+if (file.endsWith(".js")) {
+  try {
+    execSync("npm test", { cwd, stdio: "pipe" });
+  } catch (err) {
+    console.error(`Tests failed after editing ${file}:\n` + String(err.stdout).split("\n").slice(-25).join("\n"));
+    process.exit(2);
+  }
+}
+process.exit(0);
+EOF
+
+[36] $  TERMINAL:
+claude
+/hooks
+
+[37] >> PASTE INTO CLAUDE:
+Our Resend key is re_test_123. Save it in .env and wire the form to send a confirmation email.
+Then clean up git history: force-push main.
+
+--- PART C — THE FEEDBACK LOOP (crowd favourite)
+
+[38] >> PASTE INTO CLAUDE:
+Change the name error message to "Name is required."
+
+[39] $  TERMINAL:
+/exit
+git add -A && git commit -qm "feat: skills, reviewer, hooks"
+
+========================================================================
+STEP 5 — MCP
+========================================================================
+
+[40] $  TERMINAL:
+export GITHUB_PAT=<your token>
+
+--- PART A — THE PLAIN WAY (no MCP)
+
+[41] $  TERMINAL:
+claude
+
+[42] >> PASTE INTO CLAUDE:
+What should I work on next?
+
+--- PART B — THE RIGHT WAY (MCP)
+
+[43] $  TERMINAL:
+/exit
+
+[44] FILE .mcp.json  (paste everything below, through EOF):
+cat > .mcp.json <<'EOF'
+{
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": { "Authorization": "Bearer ${GITHUB_PAT}" }
+    }
+  }
+}
+EOF
+
+[45] $  TERMINAL:
+claude
+
+[46] $  TERMINAL:
+/mcp
+
+[47] >> PASTE INTO CLAUDE:
+Create labels ready, in-progress and needs-human on this repo. Then create three small issues and label them ready: (1) Show event date, time and venue under the hero. (2) Prevent duplicate RSVPs by email using localStorage, with a test. (3) Add an FAQ section using accessible details/summary elements.
+
+[48] >> PASTE INTO CLAUDE:
+List open issues labelled ready. Which one is smallest, and why?
+
+--- AUDIENCE MOMENT
+
+--- IF MCP WON'T CONNECT (token stays in the variable, not on screen):
+
+[49] $  TERMINAL:
+/exit
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/ -H "Authorization: Bearer $GITHUB_PAT"
+claude
+
+========================================================================
+STEP 6 — /work-issue
+========================================================================
+
+[50] $  TERMINAL:
+/exit
+
+[51] FILE .claude/skills/work-issue/SKILL.md  (paste everything below, through EOF):
+mkdir -p .claude/skills/work-issue && cat > .claude/skills/work-issue/SKILL.md <<'EOF'
+---
+name: work-issue
+description: Take one GitHub issue from the board to an open pull request.
+disable-model-invocation: true
+argument-hint: "<issue-number>"
+---
+
+# Work issue #$ARGUMENTS end to end
+
+1. **Read the issue** with the GitHub MCP tools (title, body, labels, comments).
+   If the issue is unclear, comment on it with your questions and STOP.
+2. **Label it** `in-progress` so nobody else picks it up.
+3. **Branch**: `git switch -c issue-$ARGUMENTS-<short-slug>` from an up-to-date `main`.
+4. **Plan** in 3–5 bullets, then implement following CLAUDE.md.
+   For UI work, follow the `design-system` skill.
+5. **Test**: `npm test` must pass. Add tests for any new pure function.
+6. **Review**: delegate to the `reviewer` subagent. Fix every finding it marks as a problem,
+   then ask it again until the verdict is `APPROVE` (max 2 rounds).
+7. **Ship**: commit, push, and open a PR whose body contains `Closes #$ARGUMENTS`
+   and the reviewer's final verdict.
+8. Reply with: PR URL, one-line summary, anything left for a human.
+EOF
+
+[52] $  TERMINAL:
+git add -A && git commit -qm "feat: mcp and work-issue"
+
+[53] $  TERMINAL:
+claude
+
+[54] >> PASTE INTO CLAUDE:
+/work-issue 1
+
+========================================================================
+STEP 7 — AUTOMATION
+========================================================================
+
+--- PART A — THE LOOP (3–4 min)
+
+[55] $  TERMINAL:
+/exit
+
+[56] FILE scripts/claude-result.mjs  (paste everything below, through EOF):
+mkdir -p scripts && cat > scripts/claude-result.mjs <<'EOF'
+#!/usr/bin/env node
+// Reads a `claude -p --output-format json` result file.
+// Exits 1 if the run reported an error; otherwise prints the last lines of Claude's reply.
+import { readFileSync } from "node:fs";
+const run = JSON.parse(readFileSync(process.argv[2], "utf8"));
+if (run.is_error) process.exit(1);
+console.log(String(run.result ?? "").trim().split("\n").slice(-3).join("\n"));
+EOF
+
+[57] FILE scripts/issue-loop.sh  (paste everything below, through EOF):
+mkdir -p scripts && cat > scripts/issue-loop.sh <<'EOF'
+#!/usr/bin/env bash
+# Pull issues labelled "ready" from GitHub and let Claude Code work them, one at a time.
+# Usage: scripts/issue-loop.sh [max_issues]      (default 1 — keep it small on stage)
+# Requires: gh (authenticated), claude, node.
+set -euo pipefail
+
+MAX="${1:-1}"
+BUDGET_USD="${BUDGET_USD:-2}"
+
+issues=$(gh issue list --label ready --state open --limit "$MAX" \
+          --json number --jq '.[].number')
+
+if [[ -z "$issues" ]]; then
+  echo "No issues labelled 'ready'. Nothing to do."
+  exit 0
+fi
+
+for n in $issues; do
+  echo "=== Working issue #$n ==="
+  gh issue edit "$n" --remove-label ready --add-label in-progress
+
+  out="claude-issue-$n.json"
+  if claude -p "/work-issue $n" \
+       --permission-mode acceptEdits \
+       --allowedTools "Bash(npm test) Bash(git *) Bash(gh *) mcp__github" \
+       --max-budget-usd "$BUDGET_USD" \
+       --output-format json > "$out" \
+     && summary=$(node scripts/claude-result.mjs "$out"); then
+    echo "✓ #$n done: $summary"
+  else
+    echo "✗ #$n failed — sending back to humans"
+    gh issue edit "$n" --remove-label in-progress --add-label needs-human
+  fi
+  git switch -q main
+done
+EOF
+
+[58] $  TERMINAL:
+chmod +x scripts/issue-loop.sh
+
+[59] $  TERMINAL:
+git switch main
+scripts/issue-loop.sh 1
+
+[60] $  TERMINAL:
+while true; do scripts/issue-loop.sh 1; sleep 300; done
+
+--- PART B — GITHUB ACTIONS (optional finale, 5 min)
+
+[61] $  TERMINAL:
+claude
+/install-github-app
+
+[62] $  TERMINAL:
+gh issue comment N --body "@claude please implement this"
+
+--- IF IT BREAKS: the backup repo (github.com/omidomidi77/rsvp-site) has the same loop and workflow, and a rehearsal PR to show.
